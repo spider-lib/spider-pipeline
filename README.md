@@ -121,12 +121,6 @@ let streaming_json_writer = StreamingJsonWriterPipeline::new("output.json")?;
 let streaming_json_writer = StreamingJsonWriterPipeline::with_batch_size("output.json", 50)?;
 ```
 
-## Dependencies
-
-This crate depends on:
-- `spider-util`: For basic data structures and utilities
-- Various external crates for specific output formats (csv, rusqlite for SQLite, etc.)
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
