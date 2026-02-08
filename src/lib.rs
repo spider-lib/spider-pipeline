@@ -11,13 +11,16 @@
 //!
 //! ## Available Pipelines
 //!
+//! ### Core Pipelines (Always Available)
 //! - **Console Writer**: Simple pipeline for printing items to the console (debugging)
 //! - **Deduplication**: Filters out duplicate items based on configurable keys
-//! - **JSON Writer**: Collects all items and writes them to a JSON file at the end
-//! - **JSONL Writer**: Streams items as individual JSON objects to a file
-//! - **CSV Exporter**: Exports items to CSV format with automatic schema inference
-//! - **SQLite Writer**: Stores items in a SQLite database with automatic schema creation
-//! - **Streaming JSON Writer**: Efficiently streams items to JSON without accumulating in memory
+//!
+//! ### Optional Pipelines (Feature-Gated)
+//! - **JSON Writer**: Collects all items and writes them to a JSON file at the end (feature: `pipeline-json`)
+//! - **JSONL Writer**: Streams items as individual JSON objects to a file (feature: `pipeline-jsonl`)
+//! - **CSV Exporter**: Exports items to CSV format with automatic schema inference (feature: `pipeline-csv`)
+//! - **SQLite Writer**: Stores items in a SQLite database with automatic schema creation (feature: `pipeline-sqlite`)
+//! - **Streaming JSON Writer**: Efficiently streams items to JSON without accumulating in memory (feature: `pipeline-streaming-json`)
 //!
 //! ## Architecture
 //!
@@ -39,12 +42,23 @@
 //!     .await?;
 //! ```
 
+// Core pipelines (always available)
 pub mod console_writer;
 pub mod deduplication;
-
-pub mod csv_exporter;
-pub mod json_writer;
-pub mod jsonl_writer;
 pub mod pipeline;
+
+// Optional pipelines (feature-gated)
+#[cfg(feature = "pipeline-csv")]
+pub mod csv_exporter;
+
+#[cfg(feature = "pipeline-json")]
+pub mod json_writer;
+
+#[cfg(feature = "pipeline-jsonl")]
+pub mod jsonl_writer;
+
+#[cfg(feature = "pipeline-sqlite")]
 pub mod sqlite_writer;
+
+#[cfg(feature = "pipeline-streaming-json")]
 pub mod streaming_json_writer;

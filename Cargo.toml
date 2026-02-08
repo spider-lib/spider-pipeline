@@ -1,6 +1,6 @@
 [package]
 name = "spider-pipeline"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 authors = ["mzyui <mzyui@proton.me>"]
 description = "Pipeline implementations for the spider-lib web scraping framework."
@@ -13,9 +13,9 @@ categories = ["web-programming", "development-tools", "parsing"]
 
 [dependencies]
 async-trait = "0.1"
-csv = { version = "1.1" }
+csv = { version = "1.1", optional = true }
 dashmap = { version = "6.1.0", features = ["serde"] }
-rusqlite = { version = "0.31" }
+rusqlite = { version = "0.31", optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 tokio = { version = "1.0", features = ["full"] }
@@ -23,3 +23,12 @@ tracing = "0.1"
 seahash = "4.1.0"
 kanal = "0.1"
 spider-util = { version = "0.1.1", path = "../spider-util" }
+
+[features]
+default = ["core"]
+core = []
+pipeline-csv = ["dep:csv"]
+pipeline-json = []
+pipeline-jsonl = []
+pipeline-sqlite = ["dep:rusqlite"]
+pipeline-streaming-json = []

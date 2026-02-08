@@ -6,15 +6,46 @@ Provides built-in pipeline implementations for the `spider-lib` framework.
 
 The `spider-pipeline` crate contains a collection of pipeline implementations that process, filter, transform, and store scraped data. Pipelines are the final stage in the crawling process, taking the items extracted by spiders and performing operations like validation, storage, or transformation.
 
+Pipelines are organized using feature flags to prevent bloat. Core pipelines are always available, while advanced features can be enabled as needed.
+
 ## Available Pipelines
 
+### Core Pipelines (Always Available)
 - **Console Writer**: Simple pipeline for printing items to the console (debugging)
 - **Deduplication**: Filters out duplicate items based on configurable keys
-- **JSON Writer**: Collects all items and writes them to a JSON file at the end
-- **JSONL Writer**: Streams items as individual JSON objects to a file
-- **CSV Exporter**: Exports items to CSV format with automatic schema inference
-- **SQLite Writer**: Stores items in a SQLite database with automatic schema creation
-- **Streaming JSON Writer**: Efficiently streams items to JSON without accumulating in memory
+
+### Optional Pipelines (Feature-Gated)
+- **JSON Writer**: Collects all items and writes them to a JSON file at the end (feature: `pipeline-json`)
+- **JSONL Writer**: Streams items as individual JSON objects to a file (feature: `pipeline-jsonl`)
+- **CSV Exporter**: Exports items to CSV format with automatic schema inference (feature: `pipeline-csv`)
+- **SQLite Writer**: Stores items in a SQLite database with automatic schema creation (feature: `pipeline-sqlite`)
+- **Streaming JSON Writer**: Efficiently streams items to JSON without accumulating in memory (feature: `pipeline-streaming-json`)
+
+## Features
+
+This crate uses feature flags to allow selective inclusion of pipeline components:
+
+- `core` (default): Includes core pipeline functionality
+- `pipeline-csv`: Enables CSV export capabilities
+- `pipeline-json`: Enables JSON writing functionality
+- `pipeline-jsonl`: Enables JSONL writing functionality
+- `pipeline-sqlite`: Enables SQLite database functionality
+- `pipeline-streaming-json`: Enables streaming JSON functionality
+
+### Important Feature Relationships
+There are no interdependent features within spider-pipeline. All pipeline features operate independently.
+
+To use only core functionality:
+```toml
+[dependencies]
+spider-pipeline = { version = "...", default-features = false, features = ["core"] }
+```
+
+To include specific pipelines:
+```toml
+[dependencies]
+spider-pipeline = { version = "...", features = ["pipeline-csv", "pipeline-json"] }
+```
 
 ## Architecture
 
