@@ -18,6 +18,7 @@
 use crate::pipeline::Pipeline;
 use async_trait::async_trait;
 use csv::Writer;
+use kanal::unbounded_async;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use spider_util::error::PipelineError;
@@ -25,7 +26,6 @@ use spider_util::item::ScrapedItem;
 use std::fs::{File, OpenOptions};
 use std::marker::PhantomData;
 use std::path::Path;
-use kanal::unbounded_async;
 use tracing::{debug, error, info};
 
 #[derive(Serialize, Deserialize)]
@@ -70,7 +70,6 @@ impl<I: ScrapedItem> CsvExporterPipeline<I> {
 
             info!("CSV async task started for file: {:?}", path_clone);
 
-            // Use async receiver in async context
             while let Ok(command) = command_receiver.recv().await {
                 match command {
                     CsvCommand::Write {
@@ -79,7 +78,6 @@ impl<I: ScrapedItem> CsvExporterPipeline<I> {
                     } => {
                         let result = (|| {
                             if writer_state.is_none() {
-                                // Initialize writer and headers from the first item
                                 let file_exists = path_clone.exists();
                                 let should_write_header =
                                     !file_exists || path_clone.metadata()?.len() == 0;

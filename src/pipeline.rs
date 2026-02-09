@@ -13,10 +13,10 @@
 //! a `ScrapedItem` and can modify, drop, or pass it along the pipeline.
 //! Pipelines also support state management for checkpointing and cleanup operations.
 
-use spider_util::error::PipelineError;
-use spider_util::item::ScrapedItem;
 use async_trait::async_trait;
 use serde_json::Value;
+use spider_util::error::PipelineError;
+use spider_util::item::ScrapedItem;
 
 /// The `Pipeline` trait defines the contract for item processing pipelines.
 ///
@@ -59,3 +59,4 @@ pub trait Pipeline<I: ScrapedItem>: Send + Sync + 'static {
         Ok(())
     }
 }
+

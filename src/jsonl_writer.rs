@@ -11,9 +11,9 @@
 //! The pipeline ensures that the output directory exists and handles file
 //! writing asynchronously to avoid blocking the main event loop.
 
-use spider_util::{error::PipelineError, item::ScrapedItem};
 use crate::pipeline::Pipeline;
 use async_trait::async_trait;
+use spider_util::{error::PipelineError, item::ScrapedItem};
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::marker::PhantomData;
@@ -32,7 +32,8 @@ pub struct JsonlWriterPipeline<I: ScrapedItem> {
 impl<I: ScrapedItem> JsonlWriterPipeline<I> {
     /// Creates a new `JsonlWriterPipeline` that writes to the specified file path.
     pub fn new(file_path: impl AsRef<Path>) -> Result<Self, PipelineError> {
-        spider_util::utils::validate_output_dir(&file_path).map_err(|e| PipelineError::Other(e.to_string()))?;
+        spider_util::utils::validate_output_dir(&file_path)
+            .map_err(|e| PipelineError::Other(e.to_string()))?;
         let path_buf = file_path.as_ref().to_path_buf();
         info!("Initializing JsonlWriterPipeline for file: {:?}", path_buf);
 

@@ -120,4 +120,3 @@ impl<I: ScrapedItem> Pipeline<I> for DeduplicationPipeline<I> {
         Ok(())
     }
 }
-

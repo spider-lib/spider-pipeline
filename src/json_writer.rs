@@ -16,6 +16,7 @@
 
 use crate::pipeline::Pipeline;
 use async_trait::async_trait;
+use kanal::unbounded_async;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use spider_util::error::PipelineError;
@@ -24,7 +25,6 @@ use std::fs::File;
 use std::io::Write;
 use std::marker::PhantomData;
 use std::path::Path;
-use kanal::unbounded_async;
 use tracing::{debug, error, info};
 
 #[derive(Serialize, Deserialize)]
@@ -57,7 +57,6 @@ impl<I: ScrapedItem> JsonWriterPipeline<I> {
         let (command_sender, command_receiver) = unbounded_async::<JsonCommand>();
         let path_buf = file_path.as_ref().to_path_buf();
 
-        // Spawn a task to handle the file writing
         tokio::task::spawn(async move {
             let mut items: Vec<Value> = Vec::new();
             info!(
@@ -65,7 +64,6 @@ impl<I: ScrapedItem> JsonWriterPipeline<I> {
                 path_buf
             );
 
-            // Use async receiver in async context
             while let Ok(command) = command_receiver.recv().await {
                 match command {
                     JsonCommand::Write(value) => {
@@ -112,7 +110,7 @@ impl<I: ScrapedItem> JsonWriterPipeline<I> {
                         if responder.send(result).await.is_err() {
                             error!("Failed to send JsonWriterPipeline shutdown response.");
                         }
-                        break; // End the loop
+                        break;
                     }
                 }
             }

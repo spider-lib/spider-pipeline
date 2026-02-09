@@ -10,16 +10,16 @@
 //! - Chunked writing: Items are written in batches to improve I/O performance
 //! - Proper JSON formatting: Maintains valid JSON array structure
 
-use spider_util::error::PipelineError;
-use spider_util::item::ScrapedItem;
 use crate::pipeline::Pipeline;
 use async_trait::async_trait;
+use kanal::unbounded_async;
 use serde_json::Value;
+use spider_util::error::PipelineError;
+use spider_util::item::ScrapedItem;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::marker::PhantomData;
 use std::path::Path;
-use kanal::unbounded_async;
 use tracing::{debug, error, info};
 
 const DEFAULT_BATCH_SIZE: usize = 100;
@@ -42,14 +42,20 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
     }
 
     /// Creates a new `StreamingJsonWriterPipeline` with a specified batch size.
-    pub fn with_batch_size(file_path: impl AsRef<Path>, batch_size: usize) -> Result<Self, PipelineError> {
-        spider_util::utils::validate_output_dir(&file_path).map_err(|e| PipelineError::Other(e.to_string()))?;
+    pub fn with_batch_size(
+        file_path: impl AsRef<Path>,
+        batch_size: usize,
+    ) -> Result<Self, PipelineError> {
+        spider_util::utils::validate_output_dir(&file_path)
+            .map_err(|e| PipelineError::Other(e.to_string()))?;
         let path_buf = file_path.as_ref().to_path_buf();
-        info!("Initializing StreamingJsonWriterPipeline for file: {:?}", path_buf);
+        info!(
+            "Initializing StreamingJsonWriterPipeline for file: {:?}",
+            path_buf
+        );
 
         let (command_sender, command_receiver) = unbounded_async::<StreamingJsonCommand>();
 
-        // Spawn a task to handle the file writing
         tokio::task::spawn(async move {
             let file = OpenOptions::new()
                 .create(true)
@@ -58,21 +64,23 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
                 .open(&path_buf)
                 .map_err(|e| {
                     error!("Failed to create/open file {:?}: {}", path_buf, e);
-                }).ok();
+                })
+                .ok();
 
             if let Some(file) = file {
                 let mut writer = BufWriter::new(file);
                 let mut items_buffer = Vec::with_capacity(batch_size);
                 let mut first_item = true;
 
-                // Write the opening bracket for the JSON array
                 if writer.write_all(b"[\n").is_err() {
                     error!("Failed to write opening bracket to file: {:?}", path_buf);
                 }
 
-                info!("StreamingJsonWriterPipeline async task started for file: {:?}", path_buf);
+                info!(
+                    "StreamingJsonWriterPipeline async task started for file: {:?}",
+                    path_buf
+                );
 
-                // Use async receiver in async context
                 while let Ok(command) = command_receiver.recv().await {
                     match command {
                         StreamingJsonCommand::Write(value) => {
@@ -83,13 +91,12 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
                             }
                         }
                         StreamingJsonCommand::Shutdown(responder) => {
-                            // Flush any remaining items
                             if !items_buffer.is_empty() {
                                 flush_items(&mut writer, &mut items_buffer, &mut first_item).ok();
                             }
 
-                            // Write the closing bracket for the JSON array
-                            let result = writer.flush()
+                            let result = writer
+                                .flush()
                                 .and_then(|_| {
                                     let file_ref = writer.get_mut();
                                     file_ref.write_all(b"\n]")
@@ -99,12 +106,15 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
                             if responder.send(result).await.is_err() {
                                 error!("Failed to send shutdown response.");
                             }
-                            break; // End the loop
+                            break;
                         }
                     }
                 }
 
-                info!("StreamingJsonWriterPipeline async task for file: {:?} finished.", path_buf);
+                info!(
+                    "StreamingJsonWriterPipeline async task for file: {:?} finished.",
+                    path_buf
+                );
             }
         });
 
@@ -131,11 +141,13 @@ fn flush_items(
         let item_str = serde_json::to_string(&item)
             .map_err(|e| PipelineError::SerializationError(e.to_string()))?;
 
-        writer.write_all(format!("{}  {}\n", prefix, item_str).as_bytes())
+        writer
+            .write_all(format!("{}  {}\n", prefix, item_str).as_bytes())
             .map_err(|e| PipelineError::IoError(e.to_string()))?;
     }
 
-    writer.flush()
+    writer
+        .flush()
         .map_err(|e| PipelineError::IoError(e.to_string()))
 }
 
@@ -154,7 +166,6 @@ impl<I: ScrapedItem> Pipeline<I> for StreamingJsonWriterPipeline<I> {
             .await
             .map_err(|e| PipelineError::Other(format!("Failed to send Write command: {}", e)))?;
 
-        // Return the item so it can continue through other pipelines if needed
         Ok(Some(item))
     }
 
@@ -171,3 +182,4 @@ impl<I: ScrapedItem> Pipeline<I> for StreamingJsonWriterPipeline<I> {
         })?
     }
 }
+

@@ -11,11 +11,11 @@
 //! - Support for various data types mapping to SQLite's type system.
 //! - Graceful handling of database connections and shutdown.
 
-use spider_util::{error::PipelineError, item::ScrapedItem};
 use crate::pipeline::Pipeline;
 use async_trait::async_trait;
 use rusqlite::{Connection, params, params_from_iter};
 use serde_json::Value;
+use spider_util::{error::PipelineError, item::ScrapedItem};
 use std::marker::PhantomData;
 use std::path::Path;
 use tokio::sync::{Mutex, mpsc, oneshot};
@@ -47,7 +47,8 @@ impl<I: ScrapedItem> SqliteWriterPipeline<I> {
         db_path: impl AsRef<Path>,
         table_name: impl Into<String>,
     ) -> Result<Self, PipelineError> {
-        spider_util::utils::validate_output_dir(&db_path).map_err(|e| PipelineError::Other(e.to_string()))?;
+        spider_util::utils::validate_output_dir(&db_path)
+            .map_err(|e| PipelineError::Other(e.to_string()))?;
         let path_buf = db_path.as_ref().to_path_buf();
         let table_name_str = table_name.into();
         info!(
