@@ -19,7 +19,7 @@ Pipelines are organized using feature flags to prevent bloat. Core pipelines are
 - **JSONL Writer**: Streams items as individual JSON objects to a file (feature: `pipeline-jsonl`)
 - **CSV Exporter**: Exports items to CSV format with automatic schema inference (feature: `pipeline-csv`)
 - **SQLite Writer**: Stores items in a SQLite database with automatic schema creation (feature: `pipeline-sqlite`)
-- **Streaming JSON Writer**: Efficiently streams items to JSON without accumulating in memory (feature: `pipeline-streaming-json`)
+- **Stream JSON Writer**: Efficiently streams items to JSON without accumulating in memory (feature: `pipeline-stream-json`)
 
 ## Features
 
@@ -30,7 +30,7 @@ This crate uses feature flags to allow selective inclusion of pipeline component
 - `pipeline-json`: Enables JSON writing functionality
 - `pipeline-jsonl`: Enables JSONL writing functionality
 - `pipeline-sqlite`: Enables SQLite database functionality
-- `pipeline-streaming-json`: Enables streaming JSON functionality
+- `pipeline-stream-json`: Enables stream JSON functionality
 
 ### Important Feature Relationships
 There are no interdependent features within spider-pipeline. All pipeline features operate independently.
@@ -137,19 +137,19 @@ use spider_pipeline::sqlite_writer::SqliteWriterPipeline;
 let sqlite_writer = SqliteWriterPipeline::new("database.db", "items")?;
 ```
 
-### Streaming JSON Writer
+### Stream JSON Writer
 
 Efficiently streams items to JSON format without accumulating them in memory.
 
 **Configuration:**
 ```rust
-use spider_pipeline::streaming_json_writer::StreamingJsonWriterPipeline;
+use spider_pipeline::stream_json_writer::StreamJsonWriterPipeline;
 
 // With default batch size (100 items)
-let streaming_json_writer = StreamingJsonWriterPipeline::new("output.json")?;
+let stream_json_writer = StreamJsonWriterPipeline::new("output.json")?;
 
 // With custom batch size
-let streaming_json_writer = StreamingJsonWriterPipeline::with_batch_size("output.json", 50)?;
+let stream_json_writer = StreamJsonWriterPipeline::with_batch_size("output.json", 50)?;
 ```
 
 ## License

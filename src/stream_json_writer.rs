@@ -1,11 +1,11 @@
-//! Streaming Item Pipeline for exporting scraped items to a JSON file.
+//! Stream Item Pipeline for exporting scraped items to a JSON file.
 //!
-//! This module provides the `StreamingJsonWriterPipeline`, an item pipeline designed
+//! This module provides the `StreamJsonWriterPipeline`, an item pipeline designed
 //! to stream `ScrapedItem`s directly to a JSON file without collecting them in memory.
 //! This approach significantly reduces memory usage when processing large numbers of items.
 //!
 //! Key features include:
-//! - Streaming processing: Items are written to the output file as they arrive
+//! - Stream processing: Items are written to the output file as they arrive
 //! - Low memory footprint: No accumulation of items in memory
 //! - Chunked writing: Items are written in batches to improve I/O performance
 //! - Proper JSON formatting: Maintains valid JSON array structure
@@ -24,24 +24,24 @@ use tracing::{debug, error, info};
 
 const DEFAULT_BATCH_SIZE: usize = 100;
 
-enum StreamingJsonCommand {
+enum StreamJsonCommand {
     Write(Value),
     Shutdown(kanal::AsyncSender<Result<(), PipelineError>>),
 }
 
 /// A pipeline that streams items directly to a JSON file without accumulating them in memory.
-pub struct StreamingJsonWriterPipeline<I: ScrapedItem> {
-    command_sender: kanal::AsyncSender<StreamingJsonCommand>,
+pub struct StreamJsonWriterPipeline<I: ScrapedItem> {
+    command_sender: kanal::AsyncSender<StreamJsonCommand>,
     _phantom: PhantomData<I>,
 }
 
-impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
-    /// Creates a new `StreamingJsonWriterPipeline` with default batch size.
+impl<I: ScrapedItem> StreamJsonWriterPipeline<I> {
+    /// Creates a new `StreamJsonWriterPipeline` with default batch size.
     pub fn new(file_path: impl AsRef<Path>) -> Result<Self, PipelineError> {
         Self::with_batch_size(file_path, DEFAULT_BATCH_SIZE)
     }
 
-    /// Creates a new `StreamingJsonWriterPipeline` with a specified batch size.
+    /// Creates a new `StreamJsonWriterPipeline` with a specified batch size.
     pub fn with_batch_size(
         file_path: impl AsRef<Path>,
         batch_size: usize,
@@ -50,11 +50,11 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
             .map_err(|e| PipelineError::Other(e.to_string()))?;
         let path_buf = file_path.as_ref().to_path_buf();
         info!(
-            "Initializing StreamingJsonWriterPipeline for file: {:?}",
+            "Initializing StreamJsonWriterPipeline for file: {:?}",
             path_buf
         );
 
-        let (command_sender, command_receiver) = unbounded_async::<StreamingJsonCommand>();
+        let (command_sender, command_receiver) = unbounded_async::<StreamJsonCommand>();
 
         tokio::task::spawn(async move {
             let file = OpenOptions::new()
@@ -77,20 +77,20 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
                 }
 
                 info!(
-                    "StreamingJsonWriterPipeline async task started for file: {:?}",
+                    "StreamJsonWriterPipeline async task started for file: {:?}",
                     path_buf
                 );
 
                 while let Ok(command) = command_receiver.recv().await {
                     match command {
-                        StreamingJsonCommand::Write(value) => {
+                        StreamJsonCommand::Write(value) => {
                             items_buffer.push(value);
 
                             if items_buffer.len() >= batch_size {
                                 flush_items(&mut writer, &mut items_buffer, &mut first_item).ok();
                             }
                         }
-                        StreamingJsonCommand::Shutdown(responder) => {
+                        StreamJsonCommand::Shutdown(responder) => {
                             if !items_buffer.is_empty() {
                                 flush_items(&mut writer, &mut items_buffer, &mut first_item).ok();
                             }
@@ -112,13 +112,13 @@ impl<I: ScrapedItem> StreamingJsonWriterPipeline<I> {
                 }
 
                 info!(
-                    "StreamingJsonWriterPipeline async task for file: {:?} finished.",
+                    "StreamJsonWriterPipeline async task for file: {:?} finished.",
                     path_buf
                 );
             }
         });
 
-        Ok(StreamingJsonWriterPipeline {
+        Ok(StreamJsonWriterPipeline {
             command_sender,
             _phantom: PhantomData,
         })
@@ -152,17 +152,17 @@ fn flush_items(
 }
 
 #[async_trait]
-impl<I: ScrapedItem> Pipeline<I> for StreamingJsonWriterPipeline<I> {
+impl<I: ScrapedItem> Pipeline<I> for StreamJsonWriterPipeline<I> {
     fn name(&self) -> &str {
-        "StreamingJsonWriterPipeline"
+        "StreamJsonWriterPipeline"
     }
 
     async fn process_item(&self, item: I) -> Result<Option<I>, PipelineError> {
-        debug!("StreamingJsonWriterPipeline processing item.");
+        debug!("StreamJsonWriterPipeline processing item.");
         let json_value = item.to_json_value();
 
         self.command_sender
-            .send(StreamingJsonCommand::Write(json_value))
+            .send(StreamJsonCommand::Write(json_value))
             .await
             .map_err(|e| PipelineError::Other(format!("Failed to send Write command: {}", e)))?;
 
@@ -170,10 +170,10 @@ impl<I: ScrapedItem> Pipeline<I> for StreamingJsonWriterPipeline<I> {
     }
 
     async fn close(&self) -> Result<(), PipelineError> {
-        info!("Closing StreamingJsonWriterPipeline.");
+        info!("Closing StreamJsonWriterPipeline.");
         let (tx, rx) = kanal::unbounded_async();
         self.command_sender
-            .send(StreamingJsonCommand::Shutdown(tx))
+            .send(StreamJsonCommand::Shutdown(tx))
             .await
             .map_err(|e| PipelineError::Other(format!("Failed to send Shutdown command: {}", e)))?;
 

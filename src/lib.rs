@@ -35,5 +35,5 @@ pub mod jsonl_writer;
 #[cfg(feature = "pipeline-sqlite")]
 pub mod sqlite_writer;
 
-#[cfg(feature = "pipeline-streaming-json")]
-pub mod streaming_json_writer;
+#[cfg(feature = "pipeline-stream-json")]
+pub mod stream_json_writer;
