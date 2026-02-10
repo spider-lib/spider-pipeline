@@ -37,3 +37,4 @@ pub mod sqlite_writer;
 
 #[cfg(feature = "pipeline-stream-json")]
 pub mod stream_json_writer;
+
