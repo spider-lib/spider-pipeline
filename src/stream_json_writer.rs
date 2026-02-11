@@ -20,7 +20,7 @@ use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::marker::PhantomData;
 use std::path::Path;
-use tracing::{debug, error, info};
+use log::{debug, error, info};
 
 const DEFAULT_BATCH_SIZE: usize = 100;
 

@@ -25,7 +25,7 @@ use std::fs::File;
 use std::io::Write;
 use std::marker::PhantomData;
 use std::path::Path;
-use tracing::{debug, error, info};
+use log::{debug, error, info};
 
 #[derive(Serialize, Deserialize)]
 struct JsonWriterState {

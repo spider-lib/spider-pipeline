@@ -19,7 +19,7 @@ use spider_util::{error::PipelineError, item::ScrapedItem};
 use std::marker::PhantomData;
 use std::path::Path;
 use tokio::sync::{Mutex, mpsc, oneshot};
-use tracing::{debug, error, info, trace};
+use log::{debug, error, info, trace};
 
 enum SqliteCommand {
     CreateSchema {

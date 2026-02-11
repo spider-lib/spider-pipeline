@@ -26,7 +26,7 @@ use spider_util::item::ScrapedItem;
 use std::fs::{File, OpenOptions};
 use std::marker::PhantomData;
 use std::path::Path;
-use tracing::{debug, error, info};
+use log::{debug, error, info};
 
 #[derive(Serialize, Deserialize)]
 struct CsvExporterState {

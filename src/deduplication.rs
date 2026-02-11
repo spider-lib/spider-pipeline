@@ -22,7 +22,7 @@ use spider_util::{error::PipelineError, item::ScrapedItem};
 use std::collections::HashSet;
 use std::hash::Hasher;
 use std::marker::PhantomData;
-use tracing::{debug, info};
+use log::{debug, info};
 
 /// A pipeline that filters out duplicate items based on a configurable set of fields.
 pub struct DeduplicationPipeline<I: ScrapedItem> {

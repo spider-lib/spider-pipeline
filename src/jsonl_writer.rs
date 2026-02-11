@@ -20,7 +20,7 @@ use std::marker::PhantomData;
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{debug, info};
+use log::{debug, info};
 
 /// A pipeline that writes each scraped item to a JSON Lines (.jsonl) file.
 /// Each item is written as a JSON object on a new line.

@@ -10,7 +10,7 @@
 use spider_util::{error::PipelineError, item::ScrapedItem};
 use crate::pipeline::Pipeline;
 use async_trait::async_trait;
-use tracing::info;
+use log::info;
 
 /// A pipeline that prints scraped items to the console.
 pub struct ConsoleWriterPipeline;
