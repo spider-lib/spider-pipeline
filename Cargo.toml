@@ -23,7 +23,7 @@ log = "0.4"
 seahash = "4.1.0"
 kanal = "0.1"
 
-spider-util = { version = "0.1.7", path = "../spider-util" }
+spider-util = { version = "0.1.8", path = "../spider-util" }
 
 [features]
 default = ["core"]
